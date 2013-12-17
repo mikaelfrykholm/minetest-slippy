@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Minetest map</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="leaflet.css" />
+  <link rel="stylesheet" href="slippy.css" />
+	<!--[if lte IE 8]><link rel="stylesheet" href="../dist/leaflet.ie.css" /><![endif]-->
+</head>
+<body>
+	<div id="map" style="width: 100%"></div>
+
+	<script src="leaflet.js"></script>
+	<script src="Permalink.js"></script>
+  <script src="Permalink.Marker.js"></script>
+  <script src="Permalink.Layer.js"></script>
+</head>
+	<script>
+
+		var map = L.map('map', {crs: L.CRS.Simple});
+		//var southWest = map.unproject([0, 2500], map.getMaxZoom());
+		//var northEast = map.unproject([2500,0], map.getMaxZoom());
+		//map.setMaxBounds(new L.LatLngBounds(southWest, northEast));
+    map.setView(new L.LatLng(0, 0), 0); 
+		var tileLayer = L.tileLayer('images/{z}/{x}/{y}.png', {
+  			maxZoom: 3,
+/*  			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',*/
+  			continuousWorld: true,
+  		  })
+		tileLayer.addTo(map);
+		getPlayers();
+function getPlayers() {
+	xmlhttp = XMLHttpRequest();
+	xmlhttp.open('GET', "/api/1.0/player/",false);
+	xmlhttp.send();
+	var geojson = JSON.parse(xmlhttp.responseText);
+	L.geoJson(geojson, 
+	        { onEachFeature: 
+	              function(feature, layer) {
+	                  layer.bindPopup(feature.properties.name);
+	              }				
+	        }).addTo(map);
+ };
+//setInterval(function(){getPlayers()},10000);
+map.addControl(new L.Control.Permalink({text: 'Permalink'}));
+myIcon = L.divIcon({className: 'my-div-icon',html:'Mikael'});
+// you can set .my-div-icon styles in CSS
+
+L.marker([0, 0], {icon: myIcon}).addTo(map);
+
+
+		var popup = L.popup();
+
+		function onMapClick(e) {
+			popup
+				.setLatLng(e.latlng)
+				.setContent("You clicked the map at " + e.latlng.toString())
+				.openOn(map);
+		}
+
+		map.on('click', onMapClick);
+
+	</script>
+</body>
+</html>
